@@ -1196,7 +1196,7 @@
     (function() {
       // ===== CONFIGURACIÓN =====
       // ⚠️ REEMPLAZA ESTA URL CON LA TUYA (la que obtuviste de Google Apps Script)
-      const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyrYTk-pd0gFurnm9MZ2l4lDmLm_coAcgjNsQ-4zcbiHYBfxSUBiOvsgkb-Jns3Gjanjg/exec';
+      const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyyvULEwZzYg8jQ01a0rjhPYg20R4jatPzpXrj8teeYuvuymuSRdEZ6RjD8GxxqncICOA/exec';
 
       // ===== DATOS FIJOS =====
       const sueldo = 1145387.89;
@@ -1402,52 +1402,88 @@
 
       // ===== COMUNICACIÓN CON SHEET =====
 
-      // 1. Sincronizar (GET)
-      async function sincronizarConSheet() {
-        if (sincronizando) return;
-        sincronizando = true;
-        const syncBtn = document.getElementById('sync-btn');
-        syncBtn.classList.add('sincronizando');
-        syncBtn.textContent = '⏳ Sincronizando...';
+      // ===== SINCRONIZAR CON SHEET (GET) - CON DETECCIÓN AUTOMÁTICA DE COLUMNAS =====
+async function sincronizarConSheet() {
+  if (sincronizando) return;
+  sincronizando = true;
+  const syncBtn = document.getElementById('sync-btn');
+  if (syncBtn) {
+    syncBtn.classList.add('sincronizando');
+    syncBtn.textContent = '⏳ Sincronizando...';
+  }
 
-        try {
-          const respuesta = await fetch(SHEET_URL);
-          if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
-          const datos = await respuesta.json();
+  try {
+    const respuesta = await fetch(SHEET_URL);
+    if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+    const datos = await respuesta.json();
 
-          if (!Array.isArray(datos) || datos.length === 0) {
-            console.warn('No se recibieron datos del sheet');
-            return;
-          }
+    if (!Array.isArray(datos) || datos.length === 0) {
+      console.warn('No se recibieron datos del sheet');
+      return;
+    }
 
-          // Mapear datos
-          const nuevosGastos = datos.map(row => ({
-            item: row.item || row.Ítem || row[0] || 'Sin nombre',
-            cuota: row.cuota || row.Cuota || row[1] || '-',
-            fecha: row.fecha || row.Fecha || row[2] || '',
-            monto: parseFloat(row.monto || row.Monto || row[3] || 0),
-            rowIndex: row.rowIndex || null
-          })).filter(g => g.monto > 0);
+    // --- DETECCIÓN AUTOMÁTICA DE COLUMNAS ---
+    const muestra = datos[0];
+    const claves = Object.keys(muestra);
 
-          if (nuevosGastos.length === 0) {
-            console.warn('No hay gastos válidos en el sheet');
-            return;
-          }
+    // Normalizar: quitar tildes y convertir a minúsculas
+    const normalizar = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-          // Reemplazar completamente
-          guardarEstadoPrevio();
-          gastos = nuevosGastos;
-          guardarGastos();
-          actualizarTodo();
-          console.log(`✅ Sincronizado: ${gastos.length} gastos desde el sheet`);
-        } catch (error) {
-          console.error('❌ Error al sincronizar:', error);
-        } finally {
-          sincronizando = false;
-          syncBtn.classList.remove('sincronizando');
-          syncBtn.textContent = '🔄 Sincronizar';
+    function findKey(patrones) {
+      for (let clave of claves) {
+        const claveNorm = normalizar(clave);
+        for (let patron of patrones) {
+          if (claveNorm === normalizar(patron)) return clave;
+          if (claveNorm.includes(normalizar(patron))) return clave;
         }
       }
+      return null;
+    }
+
+    const keyItem = findKey(['item', 'ítem', 'nombre', 'descripcion', 'producto']);
+    const keyCuota = findKey(['cuota', 'cuotas', 'plazo', 'pago']);
+    const keyFecha = findKey(['fecha', 'fechas', 'dia', 'date']);
+    const keyMonto = findKey(['monto', 'importe', 'precio', 'valor', 'amount', 'total']);
+
+    console.log('📊 Columnas detectadas:', { keyItem, keyCuota, keyFecha, keyMonto });
+
+    // Mapear datos con las claves detectadas
+    const nuevosGastos = datos.map(row => {
+      const item = keyItem ? row[keyItem] : (row[0] || 'Sin nombre');
+      const cuota = keyCuota ? row[keyCuota] : (row[1] || '-');
+      const fecha = keyFecha ? row[keyFecha] : (row[2] || '');
+      const monto = keyMonto ? parseFloat(row[keyMonto]) : (parseFloat(row[3]) || 0);
+      const rowIndex = row.rowIndex || null;
+
+      return {
+        item: String(item).trim(),
+        cuota: String(cuota).trim(),
+        fecha: String(fecha).trim(),
+        monto: isNaN(monto) ? 0 : monto,
+        rowIndex: rowIndex
+      };
+    }).filter(g => g.monto > 0 && g.item !== '');
+
+    if (nuevosGastos.length === 0) {
+      console.warn('No hay gastos válidos en el sheet');
+      return;
+    }
+
+    guardarEstadoPrevio();
+    gastos = nuevosGastos;
+    guardarGastos();
+    actualizarTodo();
+    console.log(`✅ Sincronizado: ${gastos.length} gastos desde el sheet`);
+  } catch (error) {
+    console.error('❌ Error al sincronizar:', error);
+  } finally {
+    sincronizando = false;
+    if (syncBtn) {
+      syncBtn.classList.remove('sincronizando');
+      syncBtn.textContent = '🔄 Sincronizar';
+    }
+  }
+}
 
       // 2. Agregar al Sheet (POST add)
       async function agregarAlSheet(gasto) {
