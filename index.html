@@ -1411,88 +1411,115 @@
 
       // ===== COMUNICACIÓN CON SHEET =====
 
-      // 1. Sincronizar (GET) con detección automática de columnas
-      async function sincronizarConSheet() {
-        if (sincronizando) return;
-        sincronizando = true;
-        const syncBtn = document.getElementById('sync-btn');
-        if (syncBtn) {
-          syncBtn.classList.add('sincronizando');
-          syncBtn.textContent = '⏳ Sincronizando...';
-        }
+     // ===== SINCRONIZAR CON SHEET (GET) - VERSIÓN MEJORADA =====
+async function sincronizarConSheet() {
+  if (sincronizando) return;
+  sincronizando = true;
+  const syncBtn = document.getElementById('sync-btn');
+  if (syncBtn) {
+    syncBtn.classList.add('sincronizando');
+    syncBtn.textContent = '⏳ Sincronizando...';
+  }
 
-        try {
-          const respuesta = await fetch(SHEET_URL);
-          if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
-          const datos = await respuesta.json();
+  try {
+    const respuesta = await fetch(SHEET_URL);
+    if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+    const datos = await respuesta.json();
 
-          if (!Array.isArray(datos) || datos.length === 0) {
-            console.warn('No se recibieron datos del sheet');
-            return;
-          }
+    if (!Array.isArray(datos) || datos.length === 0) {
+      console.warn('No se recibieron datos del sheet');
+      return;
+    }
 
-          // --- DETECCIÓN AUTOMÁTICA DE COLUMNAS ---
-          const muestra = datos[0];
-          const claves = Object.keys(muestra);
+    // --- DETECCIÓN AUTOMÁTICA DE COLUMNAS ---
+    const muestra = datos[0];
+    const claves = Object.keys(muestra);
+    console.log('📋 Claves recibidas del Sheet:', claves);
 
-          // Normalizar: quitar tildes y convertir a minúsculas
-          const normalizar = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    // Normalizar: quitar tildes y convertir a minúsculas
+    const normalizar = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-          function findKey(patrones) {
-            for (let clave of claves) {
-              const claveNorm = normalizar(clave);
-              for (let patron of patrones) {
-                if (claveNorm === normalizar(patron)) return clave;
-                if (claveNorm.includes(normalizar(patron))) return clave;
-              }
-            }
-            return null;
-          }
-
-          const keyItem = findKey(['item', 'ítem', 'nombre', 'descripcion', 'producto']);
-          const keyCuota = findKey(['cuota', 'cuotas', 'plazo', 'pago']);
-          const keyFecha = findKey(['fecha', 'fechas', 'dia', 'date']);
-          const keyMonto = findKey(['monto', 'importe', 'precio', 'valor', 'amount', 'total']);
-
-          console.log('📊 Columnas detectadas:', { keyItem, keyCuota, keyFecha, keyMonto });
-
-          // Mapear datos con las claves detectadas
-          const nuevosGastos = datos.map(row => {
-            const item = keyItem ? row[keyItem] : (row[0] || 'Sin nombre');
-            const cuota = keyCuota ? row[keyCuota] : (row[1] || '-');
-            const fecha = keyFecha ? row[keyFecha] : (row[2] || '');
-            const monto = keyMonto ? parseFloat(row[keyMonto]) : (parseFloat(row[3]) || 0);
-            const rowIndex = row.rowIndex || null;
-
-            return {
-              item: String(item).trim(),
-              cuota: String(cuota).trim(),
-              fecha: String(fecha).trim(),
-              monto: isNaN(monto) ? 0 : monto,
-              rowIndex: rowIndex
-            };
-          }).filter(g => g.monto > 0 && g.item !== '');
-
-          if (nuevosGastos.length === 0) {
-            console.warn('No hay gastos válidos en el sheet');
-            return;
-          }
-
-          guardarEstadoPrevio();
-          gastos = nuevosGastos;
-          guardarGastos();
-          actualizarTodo();
-          console.log(`✅ Sincronizado: ${gastos.length} gastos desde el sheet`);
-        } catch (error) {
-          console.error('❌ Error al sincronizar:', error);
-        } finally {
-          sincronizando = false;
-          if (syncBtn) {
-            syncBtn.classList.remove('sincronizando');
-            syncBtn.textContent = '🔄 Sincronizar';
-          }
+    function findKey(patrones) {
+      for (let clave of claves) {
+        const claveNorm = normalizar(clave);
+        for (let patron of patrones) {
+          if (claveNorm === normalizar(patron)) return clave;
+          if (claveNorm.includes(normalizar(patron))) return clave;
         }
       }
+      return null;
+    }
+
+    // Buscar claves
+    let keyItem = findKey(['item', 'ítem', 'nombre', 'descripcion', 'producto']);
+    const keyCuota = findKey(['cuota', 'cuotas', 'plazo', 'pago']);
+    const keyFecha = findKey(['fecha', 'fechas', 'dia', 'date']);
+    const keyMonto = findKey(['monto', 'importe', 'precio', 'valor', 'amount', 'total']);
+
+    // Si no encuentra "Item", forzar a usar la primera columna (índice 0)
+    if (!keyItem) {
+      console.warn('⚠️ No se detectó columna "Item", usando la primera columna (índice 0)');
+      // Forzamos a que use el índice 0
+      keyItem = null; // Dejamos null para que luego use row[0]
+    }
+
+    console.log('📊 Columnas detectadas:', { keyItem, keyCuota, keyFecha, keyMonto });
+
+    // Mapear datos con las claves detectadas (o por índice)
+    const nuevosGastos = datos.map(row => {
+      // Si keyItem es null, usar row[0] (primera columna)
+      // Si keyItem existe, usar esa clave
+      let item = 'Sin nombre';
+      if (keyItem) {
+        item = row[keyItem];
+      } else {
+        // Si no hay keyItem, intentar obtener el primer valor del objeto
+        // Pero row es un objeto, no un array, así que necesitamos obtener los valores en orden
+        // Mejor: usar row[Object.keys(row)[0]] para obtener el primer valor
+        const firstKey = Object.keys(row)[0];
+        item = row[firstKey];
+      }
+
+      const cuota = keyCuota ? row[keyCuota] : (row[1] || '-');
+      const fecha = keyFecha ? row[keyFecha] : (row[2] || '');
+      const monto = keyMonto ? parseFloat(row[keyMonto]) : (parseFloat(row[3]) || 0);
+      const rowIndex = row.rowIndex || null;
+
+      // Si item es undefined o null, poner "Sin nombre"
+      if (!item || item === '' || item === 'undefined' || item === 'null') {
+        item = 'Sin nombre';
+      }
+
+      return {
+        item: String(item).trim(),
+        cuota: String(cuota).trim(),
+        fecha: String(fecha).trim(),
+        monto: isNaN(monto) ? 0 : monto,
+        rowIndex: rowIndex
+      };
+    }).filter(g => g.monto > 0);
+
+    // Si después del filtro no hay gastos, mostrar advertencia
+    if (nuevosGastos.length === 0) {
+      console.warn('No hay gastos válidos en el sheet');
+      return;
+    }
+
+    guardarEstadoPrevio();
+    gastos = nuevosGastos;
+    guardarGastos();
+    actualizarTodo();
+    console.log(`✅ Sincronizado: ${gastos.length} gastos desde el sheet`);
+  } catch (error) {
+    console.error('❌ Error al sincronizar:', error);
+  } finally {
+    sincronizando = false;
+    if (syncBtn) {
+      syncBtn.classList.remove('sincronizando');
+      syncBtn.textContent = '🔄 Sincronizar';
+    }
+  }
+}
 
       // 2. Agregar al Sheet (POST add)
       async function agregarAlSheet(gasto) {
