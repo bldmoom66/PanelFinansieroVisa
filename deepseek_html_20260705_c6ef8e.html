@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Financiero · VISA Julio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ============================================================
+       VARIABLES Y RESET
+    ============================================================ */
+    :root {
+      --bg: #F5F4FB;
+      --surface: rgba(18, 18, 22, 0.78);
+      --ink: #F5F5F5;
+      --ink-soft: #D0D0D8;
+      --ink-faint: #A0A0AA;
+      --border: rgba(255, 255, 255, 0.08);
+      --violet-700: #4B2FE0;
+      --violet-900: #221254;
+      --violet-soft: #EFEBFD;
+      --coral: #E8543F;
+      --coral-bg: #FDE8E4;
+      --amber: #C98A22;
+      --amber-bg: #FBEFDA;
+      --mint: #1F9A6C;
+      --mint-bg: #E1F4EB;
+      --radius-lg: 22px;
+      --radius-md: 14px;
+      --shadow: 0 1px 2px rgba(28, 19, 80, 0.04), 0 8px 24px rgba(28, 19, 80, 0.06);
+      --shadow-hover: 0 4px 10px rgba(28, 19, 80, 0.08), 0 14px 30px rgba(28, 19, 80, 0.10);
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+      --font-display: 'Space Grotesk', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #0b0d2e, #1a237e, #283593);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    body.light {
+      --surface: rgba(255, 255, 255, 0.88);
+      --ink: #1a1a2e;
+      --ink-soft: #333;
+      --ink-faint: #666;
+      --border: rgba(0, 0, 0, 0.08);
+      background: linear-gradient(135deg, #e3edfa, #c5d5f0);
+    }
+
+    body.light .panel-tabla,
+    body.light .panel-donut {
+      background: var(--surface);
+    }
+    body.light .stat {
+      background: var(--surface);
+    }
+    body.light tfoot td {
+      background: var(--violet-700);
+      color: white;
+    }
+    body.light .badge.alto {
+      background: #fde8e4;
+      color: var(--coral);
+    }
+    body.light .badge.medio {
+      background: #fbefda;
+      color: var(--amber);
+    }
+    body.light .badge.bajo {
+      background: #e1f4eb;
+      color: var(--mint);
+    }
+    body.light .add-row-form input {
+      background: rgba(0, 0, 0, 0.05);
+      color: #1a1a2e;
+      border-color: rgba(0, 0, 0, 0.1);
+    }
+    body.light .add-row-form input:focus {
+      border-color: var(--violet-700);
+    }
+    body.light .add-row-form button#add-btn {
+      background: var(--violet-700);
+      color: white;
+    }
+    body.light .btn-eliminar-fila {
+      color: #888;
+    }
+    body.light .btn-eliminar-fila:hover {
+      color: var(--coral);
+      background: rgba(232, 84, 63, 0.1);
+    }
+    body.light .tema-toggle-container {
+      background: rgba(255, 255, 255, 0.8);
+      border-color: rgba(0, 0, 0, 0.1);
+    }
+    body.light .donut .hole {
+      background: var(--surface);
+    }
+
+    .num {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ============================================================
+       INTERRUPTOR DE TEMA FLOTANTE
+    ============================================================ */
+    .tema-toggle-container {
+      position: fixed;
+      top: 16px;
+      right: 20px;
+      z-index: 1000;
+      background: rgba(20, 20, 25, 0.35);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    .tema-toggle-container span {
+      font-size: 13px;
+      color: var(--ink-soft);
+    }
+    .tema-toggle-container label {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 22px;
+    }
+    .tema-toggle-container label input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .tema-toggle-container label .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 22px;
+      transition: 0.3s;
+    }
+    .tema-toggle-container label .slider::before {
+      content: '';
+      position: absolute;
+      height: 18px;
+      width: 18px;
+      left: 2px;
+      bottom: 2px;
+      background: white;
+      border-radius: 50%;
+      transition: 0.3s;
+    }
+    .tema-toggle-container label input:checked+.slider {
+      background: var(--violet-700);
+    }
+    .tema-toggle-container label input:checked+.slider::before {
+      transform: translateX(18px);
+    }
+
+    /* ============================================================
+       LAYOUT GENERAL
+    ============================================================ */
+    .wrap {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 32px 20px 70px;
+    }
+
+    section {
+      margin-bottom: 30px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding: 0 4px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .section-head h2 {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .section-head h2::before {
+      content: '';
+      width: 6px;
+      height: 20px;
+      background: var(--violet-700);
+      border-radius: 3px;
+      display: inline-block;
+    }
+    .section-head .hint {
+      font-size: 12px;
+      color: var(--ink-faint);
+    }
+    .section-head .derecha {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .vista-switch {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--ink-soft);
+      cursor: pointer;
+      user-select: none;
+      background: rgba(255,255,255,0.05);
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+    .vista-switch:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    .vista-switch .icono {
+      font-size: 16px;
+      line-height: 1;
+    }
+    .vista-switch .etiqueta {
+      font-weight: 500;
+    }
+
+    /* ============================================================
+       PANEL TARJETAS (GASTOS)
+    ============================================================ */
+    .panel-tabla {
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: background 0.3s;
+    }
+
+    .items-container {
+      display: table;
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+    }
+
+    .header-row {
+      display: table-row;
+      background: rgba(20, 20, 25, 0.35);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .header-row .header-cell {
+      display: table-cell;
+      padding: 14px 8px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ink-faint);
+      font-weight: 700;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+    .header-row .header-cell:first-child {
+      padding-left: 8px;
+      text-align: center;
+    }
+    .header-row .header-cell:last-child {
+      padding-right: 16px;
+      text-align: right;
+    }
+    .header-row .header-cell.al-der {
+      text-align: right;
+    }
+
+    .gasto-row {
+      display: table-row;
+      transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    @media (hover: hover) {
+      .gasto-row:hover {
+        background-color: var(--violet-soft);
+        box-shadow: inset 3px 0 0 var(--violet-700);
+      }
+      body.light .gasto-row:hover {
+        background-color: rgba(75, 47, 224, 0.08);
+        box-shadow: inset 3px 0 0 var(--violet-700);
+      }
+    }
+
+    .gasto-row .cell {
+      display: table-cell;
+      padding: 14px 8px;
+      font-size: 15px;
+      border-bottom: 1px solid var(--border);
+      color: var(--ink);
+      vertical-align: middle;
+    }
+    .gasto-row .cell:first-child {
+      padding-left: 8px;
+      text-align: center;
+    }
+    .gasto-row .cell:last-child {
+      padding-right: 16px;
+      text-align: right;
+    }
+    .gasto-row .cell.item {
+      font-weight: 600;
+    }
+    .gasto-row .cell.cuota,
+    .gasto-row .cell.fecha {
+      color: var(--ink-soft);
+      font-family: var(--font-mono);
+      font-size: 14px;
+    }
+    .gasto-row .cell.fecha input[type="date"] {
+      background: transparent;
+      border: none;
+      color: var(--ink-soft);
+      font-family: inherit;
+      font-size: inherit;
+      width: 100%;
+      padding: 0;
+      outline: none;
+      cursor: pointer;
+    }
+    .gasto-row .cell.fecha input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.8);
+    }
+    body.light .gasto-row .cell.fecha input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.2);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 14px;
+      white-space: nowrap;
+      max-width: 100%;
+      font-family: var(--font-mono);
+    }
+    .badge.alto {
+      background: var(--coral-bg);
+      color: var(--coral);
+    }
+    .badge.medio {
+      background: var(--amber-bg);
+      color: var(--amber);
+    }
+    .badge.bajo {
+      background: var(--mint-bg);
+      color: var(--mint);
+    }
+
+    tfoot td {
+      padding: 14px 8px;
+      font-size: 15px;
+      font-weight: 700;
+      background: var(--violet-900);
+      color: #fff;
+    }
+    tfoot td:first-child {
+      padding-left: 16px;
+    }
+    tfoot td.al-der {
+      text-align: right;
+      font-size: 16px;
+      padding-right: 16px;
+    }
+
+    .btn-eliminar-fila {
+      background: none;
+      border: none;
+      color: var(--ink-faint);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.2s;
+      opacity: 0.3;
+      font-family: var(--font-sans);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      flex-shrink: 0;
+    }
+    .btn-eliminar-fila:hover {
+      opacity: 1;
+      color: var(--coral);
+      background: rgba(232, 84, 63, 0.15);
+    }
+    .btn-eliminar-fila:active {
+      transform: scale(0.9);
+    }
+
+    /* ============================================================
+       FORMULARIO DE AGREGAR
+    ============================================================ */
+    .add-row-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      align-items: flex-end;
+      padding: 16px 20px 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border-top: 1px solid var(--border);
+      position: relative;
+    }
+    .add-row-form .grupo {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 100px;
+      position: relative;
+    }
+    .add-row-form .grupo label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ink-faint);
+      transition: 0.2s;
+      pointer-events: none;
+      position: absolute;
+      top: 8px;
+      left: 10px;
+      transform-origin: left top;
+      transition: all 0.2s ease;
+    }
+    .add-row-form .grupo input {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      padding: 10px 10px 6px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--ink);
+      outline: none;
+      transition: 0.2s;
+      width: 100%;
+    }
+    .add-row-form .grupo input:focus {
+      border-color: var(--violet-700);
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .add-row-form .grupo input:focus+label,
+    .add-row-form .grupo input:not(:placeholder-shown)+label {
+      transform: translateY(-16px) scale(0.85);
+      color: var(--violet-700);
+    }
+    .add-row-form .grupo input[type="number"] {
+      appearance: textfield;
+      -moz-appearance: textfield;
+    }
+    .add-row-form .grupo input[type="number"]::-webkit-outer-spin-button,
+    .add-row-form .grupo input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .add-row-form .grupo input[type="date"] {
+      color: transparent;
+      cursor: pointer;
+    }
+    .add-row-form .grupo input[type="date"]:focus,
+    .add-row-form .grupo input[type="date"]:not(:placeholder-shown) {
+      color: var(--ink-soft);
+    }
+    .add-row-form .grupo input[type="date"]:focus+label,
+    .add-row-form .grupo input[type="date"]:not(:placeholder-shown)+label {
+      transform: translateY(-16px) scale(0.85);
+      color: var(--violet-700);
+    }
+    .add-row-form .grupo-fecha {
+      position: relative;
+    }
+    .add-row-form .grupo-fecha .btn-hoy {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 8px;
+      cursor: pointer;
+      font-size: 10px;
+      color: var(--ink-soft);
+      transition: 0.2s;
+      line-height: 1.6;
+    }
+    .add-row-form .grupo-fecha .btn-hoy:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .add-row-form button#add-btn {
+      background: var(--violet-700);
+      border: none;
+      border-radius: 6px;
+      padding: 10px 22px;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+      font-family: var(--font-sans);
+      font-size: 14px;
+      align-self: center;
+      margin-top: 4px;
+      white-space: nowrap;
+    }
+    .add-row-form button#add-btn:hover {
+      background: #5f45e8;
+      transform: scale(1.02);
+    }
+    .add-row-form button#add-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* ============================================================
+       BOTONERA DE ACCIONES
+    ============================================================ */
+    .acciones-botonera {
+      padding: 10px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    #restaurar-btn {
+      background: var(--violet-700);
+      border: none;
+      border-radius: 6px;
+      padding: 6px 18px;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+      font-family: var(--font-sans);
+      font-size: 13px;
+    }
+    #restaurar-btn:hover:not(:disabled) {
+      opacity: 0.85;
+      transform: scale(1.02);
+    }
+    #restaurar-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    .acciones-botonera .info {
+      color: var(--ink-faint);
+      font-size: 12px;
+    }
+
+    /* ============================================================
+       STATS
+    ============================================================ */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .stat {
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+    }
+    .stat .label {
+      font-size: 11px;
+      color: var(--ink-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .stat .value {
+      font-size: 20px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      line-height: 1.2;
+    }
+    .stat.ok .value {
+      color: var(--mint);
+    }
+    .stat.neutro .value {
+      color: var(--coral);
+    }
+
+    .custom-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+    .custom-stats .wide {
+      grid-column: 1 / 3;
+      justify-self: center;
+      width: 70%;
+    }
+    .custom-stats .resto .value {
+      color: var(--mint);
+      font-size: 22px;
+    }
+
+    /* ============================================================
+       DONUT
+    ============================================================ */
+    .panel-donut {
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      padding: 28px 32px;
+      display: flex;
+      align-items: center;
+      gap: 40px;
+      flex-wrap: wrap;
+      transition: background 0.3s;
+    }
+    .donut {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: conic-gradient(var(--amber) 0deg var(--p1),
+          var(--coral) var(--p1) var(--p2),
+          var(--violet-700) var(--p2) 360deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(34, 18, 84, 0.15);
+      transition: transform 0.3s;
+    }
+    .donut:hover {
+      transform: scale(1.02);
+    }
+    .donut .hole {
+      width: 120px;
+      height: 120px;
+      background: var(--surface);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+    .donut .hole .r-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ink-faint);
+      margin-bottom: 2px;
+    }
+    .donut .hole .r-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--violet-700);
+      line-height: 1.15;
+      font-family: var(--font-mono);
+    }
+    body.light .donut .hole .r-value {
+      color: var(--violet-700);
+    }
+    .donut .hole .r-pct {
+      font-size: 12px;
+      color: var(--ink-soft);
+      margin-top: 2px;
+      font-weight: 500;
+    }
+
+    .leyenda {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      flex: 1;
+      min-width: 200px;
+    }
+    .leyenda .fila {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .leyenda .fila:last-child {
+      border-bottom: none;
+    }
+    .leyenda .fila .izq {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--ink-soft);
+    }
+    .leyenda .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .dot.prestamo {
+      background: var(--amber);
+    }
+    .dot.tarjeta {
+      background: var(--coral);
+    }
+    .dot.resto {
+      background: var(--violet-700);
+    }
+    .leyenda .fila .der {
+      font-weight: 700;
+      color: var(--ink);
+      font-family: var(--font-mono);
+      font-size: 14px;
+    }
+
+    /* ============================================================
+       ESTILOS MÓVIL
+    ============================================================ */
+    @media (max-width: 640px) {
+      .items-container {
+        display: block;
+        padding: 4px 0;
+      }
+      .header-row {
+        display: none !important;
+      }
+
+      .gasto-row {
+        display: block !important;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin: 8px 12px;
+        padding: 14px 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        transition: all 0.2s ease;
+      }
+      .gasto-row:active {
+        transform: scale(0.99);
+      }
+
+      .gasto-row .cell {
+        display: block !important;
+        border: none !important;
+        padding: 4px 0 !important;
+        width: 100%;
+        background: transparent;
+      }
+
+      .gasto-row .cell:first-child {
+        display: flex !important;
+        align-items: center;
+        justify-content: flex-start;
+        padding-bottom: 6px !important;
+      }
+      .gasto-row .cell:first-child .btn-eliminar-fila {
+        opacity: 0.5;
+        margin-right: 8px;
+      }
+      .gasto-row .cell.item {
+        font-size: 16px;
+        font-weight: 700;
+        flex: 1;
+        padding: 0 4px !important;
+      }
+      .gasto-row .cell:last-child {
+        text-align: right;
+        padding: 0 !important;
+        margin-left: auto;
+      }
+      .gasto-row .cell:last-child .badge {
+        font-size: 15px;
+        padding: 4px 12px;
+      }
+
+      .gasto-row .cell.cuota {
+        font-size: 13px;
+        color: var(--ink-soft);
+        padding-top: 4px !important;
+        border-top: 1px solid var(--border);
+        margin-top: 6px;
+        display: flex !important;
+        gap: 12px;
+      }
+      .gasto-row .cell.cuota::before {
+        content: "Cuota: ";
+        color: var(--ink-faint);
+        font-weight: 400;
+      }
+      .gasto-row .cell.fecha {
+        font-size: 13px;
+        color: var(--ink-soft);
+        padding-top: 2px !important;
+        display: flex !important;
+        align-items: center;
+        gap: 6px;
+      }
+      .gasto-row .cell.fecha::before {
+        content: "Fecha: ";
+        color: var(--ink-faint);
+        font-weight: 400;
+      }
+      .gasto-row .cell.fecha input[type="date"] {
+        width: auto;
+        flex: 1;
+        min-width: 100px;
+        color: var(--ink-soft);
+        font-size: 13px;
+        background: transparent;
+        border: none;
+        padding: 2px 0;
+        outline: none;
+      }
+      .gasto-row .cell.fecha input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(0.8);
+      }
+      body.light .gasto-row .cell.fecha input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(0.2);
+      }
+
+      .gasto-row .cell.cuota,
+      .gasto-row .cell.fecha {
+        display: inline-flex !important;
+        width: auto;
+        margin-right: 12px;
+      }
+
+      .add-row-form {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 16px;
+      }
+      .add-row-form .grupo {
+        min-width: unset;
+      }
+      .add-row-form .grupo input {
+        padding: 10px 10px 6px 10px;
+      }
+      .add-row-form button#add-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px;
+      }
+
+      .acciones-botonera {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding: 12px 16px;
+      }
+      #restaurar-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 10px;
+      }
+      .acciones-botonera .info {
+        text-align: center;
+      }
+
+      tfoot td {
+        padding: 12px 16px;
+        font-size: 14px;
+      }
+      tfoot td.al-der {
+        font-size: 15px;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+      .custom-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+      .custom-stats .wide {
+        grid-column: 1 / 3;
+        width: 90%;
+      }
+      .panel-donut {
+        justify-content: center;
+        padding: 20px 16px;
+        gap: 24px;
+      }
+      .donut {
+        width: 150px;
+        height: 150px;
+      }
+      .donut .hole {
+        width: 100px;
+        height: 100px;
+      }
+      .donut .hole .r-value {
+        font-size: 16px;
+      }
+      .leyenda {
+        min-width: unset;
+        width: 100%;
+      }
+      .stat .value {
+        font-size: 17px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .gasto-row {
+        padding: 10px 12px;
+      }
+      .gasto-row .cell.item {
+        font-size: 15px;
+      }
+      .gasto-row .cell:last-child .badge {
+        font-size: 13px;
+        padding: 3px 10px;
+      }
+      .gasto-row .cell.cuota,
+      .gasto-row .cell.fecha {
+        font-size: 12px;
+      }
+      .tema-toggle-container {
+        top: 10px;
+        right: 10px;
+        padding: 4px 10px;
+      }
+    }
+
+    .vista-resumida .header-cell.cuota,
+    .vista-resumida .header-cell.fecha {
+      display: none !important;
+    }
+    .vista-resumida .gasto-row .cell.cuota,
+    .vista-resumida .gasto-row .cell.fecha {
+      display: none !important;
+    }
+    .vista-resumida .gasto-row .cell.cuota::before,
+    .vista-resumida .gasto-row .cell.fecha::before {
+      content: none !important;
+    }
+
+    /* ============================================================
+       ANIMACIONES
+    ============================================================ */
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .gasto-row.nuevo {
+      animation: slideDown 0.3s ease forwards;
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+        max-height: 200px;
+        margin: 8px 12px;
+        padding: 14px 16px;
+      }
+      to {
+        opacity: 0;
+        max-height: 0;
+        margin: 0 12px;
+        padding: 0 16px;
+        overflow: hidden;
+      }
+    }
+    .gasto-row.eliminando {
+      animation: fadeOut 0.25s ease forwards;
+      pointer-events: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Interruptor de tema flotante -->
+  <div class="tema-toggle-container">
+    <span>🌙</span>
+    <label>
+      <input type="checkbox" id="tema-toggle">
+      <span class="slider"></span>
+    </label>
+    <span>☀️</span>
+  </div>
+
+  <div class="wrap">
+
+    <section>
+      <div class="section-head">
+        <h2>Gastos Tarjeta VISA</h2>
+        <div class="derecha">
+          <span class="vista-switch" id="vista-switch" role="button" tabindex="0" aria-label="Alternar vista resumida/desplegada">
+            <span class="icono" id="vista-icono">📋</span>
+            <span class="etiqueta" id="vista-etiqueta">Desplegado</span>
+          </span>
+          <span class="hint" id="contador-gastos">6 movimientos</span>
+        </div>
+      </div>
+      <div class="panel-tabla">
+        <div class="items-container" id="items-container">
+          <div class="header-row">
+            <div class="header-cell" style="text-align:center;">&nbsp;</div>
+            <div class="header-cell">Ítem</div>
+            <div class="header-cell cuota">Cuota</div>
+            <div class="header-cell fecha">Fecha</div>
+            <div class="header-cell al-der">Monto</div>
+          </div>
+        </div>
+
+        <div style="padding: 14px 16px; background: var(--violet-900); color: #fff; display: flex; justify-content: space-between; font-weight: 700; font-size: 15px;">
+          <span>Total Tarjeta</span>
+          <span class="num" id="total-tarjeta">$202.325,00</span>
+        </div>
+
+        <div class="add-row-form" id="add-form">
+          <div class="grupo">
+            <input type="text" id="item-input" placeholder=" " required>
+            <label for="item-input">Ítem</label>
+          </div>
+          <div class="grupo">
+            <input type="number" id="cuota-input" placeholder=" " min="0" step="1">
+            <label for="cuota-input">Cuota</label>
+          </div>
+          <div class="grupo grupo-fecha">
+            <input type="date" id="fecha-input" placeholder=" ">
+            <label for="fecha-input">Fecha</label>
+            <button type="button" class="btn-hoy" id="hoy-btn">Hoy</button>
+          </div>
+          <div class="grupo">
+            <input type="number" id="monto-input" placeholder=" " min="0" step="0.01" required>
+            <label for="monto-input">Monto</label>
+          </div>
+          <button id="add-btn">Agregar gasto</button>
+        </div>
+
+        <div class="acciones-botonera">
+          <button id="restaurar-btn" disabled>↩️ Restaurar último</button>
+          <span class="info">(deshace la última acción: agregar o eliminar)</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>Ingresos y fijos</h2>
+      </div>
+      <div class="stats custom-stats">
+        <div class="stat ok">
+          <div class="label">Sueldo</div>
+          <div class="value num">$1.145.387,89</div>
+        </div>
+        <div class="stat ok">
+          <div class="label">Uniforme</div>
+          <div class="value num">$60.826,00</div>
+        </div>
+        <div class="stat ok wide">
+          <div class="label">Total Ingresos</div>
+          <div class="value num" id="total-ingresos">$1.206.213,89</div>
+        </div>
+        <div class="stat neutro">
+          <div class="label">Préstamo</div>
+          <div class="value num" id="prestamo-fijo">$115.000,00</div>
+        </div>
+        <div class="stat neutro">
+          <div class="label">Total Tarjeta</div>
+          <div class="value num" id="total-tarjeta-stats">$202.325,00</div>
+        </div>
+        <div class="stat ok wide resto">
+          <div class="label">Resto</div>
+          <div class="value num" id="resto-stats">$888.888,89</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>Consumo del ingreso</h2>
+        <span class="hint">Préstamo + Tarjeta vs. Resto</span>
+      </div>
+      <div class="panel-donut">
+        <div class="donut" id="donut" style="--p1:34.3deg; --p2:94.7deg;">
+          <div class="hole">
+            <div class="r-label">Resto</div>
+            <div class="r-value num" id="resto-donut">$888.888,89</div>
+            <div class="r-pct" id="resto-pct">73,69% libre</div>
+          </div>
+        </div>
+        <div class="leyenda">
+          <div class="fila">
+            <span class="izq"><span class="dot prestamo"></span>Préstamo</span>
+            <span class="der num" id="leyenda-prestamo">$115.000,00 · 9,53%</span>
+          </div>
+          <div class="fila">
+            <span class="izq"><span class="dot tarjeta"></span>Tarjeta VISA</span>
+            <span class="der num" id="leyenda-tarjeta">$202.325,00 · 16,78%</span>
+          </div>
+          <div class="fila">
+            <span class="izq"><span class="dot resto"></span>Resto disponible</span>
+            <span class="der num" id="leyenda-resto">$888.888,89 · 73,69%</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    (function() {
+      // ===== CONFIGURACIÓN =====
+      const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyyL-0S80fOgNHlOw5Z-RZBg4Xyvg0oJTMmrhwATnB7io7yuJncoL4yW7h3pkr7xewjsg/exec'; // <--- REEMPLAZA CON TU URL
+
+      // ===== DATOS FIJOS =====
+      const sueldo = 1145387.89;
+      const uniforme = 60826.00;
+      const prestamo = 115000.00;
+
+      // ===== ESTADO =====
+      let gastos = [];
+      let ultimoEstado = null;
+
+      // ===== PERSISTENCIA LOCAL =====
+      function guardarGastos() {
+        localStorage.setItem('gastos', JSON.stringify(gastos));
+      }
+
+      function cargarGastos() {
+        const guardado = localStorage.getItem('gastos');
+        if (guardado) {
+          try { return JSON.parse(guardado); } catch (e) { return null; }
+        }
+        return null;
+      }
+
+      // ===== ORDENAR (mayor a menor monto) =====
+      function ordenarGastos() {
+        gastos.sort((a, b) => b.monto - a.monto);
+      }
+
+      // ===== FORMATO MONEDA =====
+      function formatMoney(amount) {
+        return '$' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      }
+
+      // ===== CÁLCULOS =====
+      function calcularTotalTarjeta() {
+        return gastos.reduce((sum, g) => sum + g.monto, 0);
+      }
+
+      function calcularResto() {
+        return (sueldo + uniforme) - (prestamo + calcularTotalTarjeta());
+      }
+
+      // ===== HISTORIAL (restaurar) =====
+      function guardarEstadoPrevio() {
+        ultimoEstado = gastos.map(g => ({ ...g }));
+        document.getElementById('restaurar-btn').disabled = false;
+      }
+
+      function restaurarUltimo() {
+        if (ultimoEstado === null) return;
+        gastos = ultimoEstado.map(g => ({ ...g }));
+        ultimoEstado = null;
+        document.getElementById('restaurar-btn').disabled = true;
+        guardarGastos();
+        actualizarTodo();
+      }
+
+      // ===== ACTUALIZAR VISTA =====
+      function actualizarTodo(animarNuevo = false) {
+        ordenarGastos();
+
+        const totalTarjeta = calcularTotalTarjeta();
+        const resto = calcularResto();
+        const totalIngresos = sueldo + uniforme;
+
+        const container = document.getElementById('items-container');
+        const header = container.querySelector('.header-row');
+        container.innerHTML = '';
+        if (header) container.appendChild(header);
+
+        gastos.forEach((g, index) => {
+          const row = document.createElement('div');
+          row.className = 'gasto-row';
+          if (animarNuevo && index === gastos.length - 1) {
+            row.classList.add('nuevo');
+          }
+          row.dataset.index = index;
+
+          // Columna acción (eliminar)
+          const cellAccion = document.createElement('div');
+          cellAccion.className = 'cell';
+          cellAccion.style.textAlign = 'center';
+          const btn = document.createElement('button');
+          btn.className = 'btn-eliminar-fila';
+          btn.textContent = '🗑️';
+          btn.title = 'Eliminar este gasto';
+          btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (!confirm('¿Eliminar "' + g.item + '"?')) return;
+
+            const fila = this.closest('.gasto-row');
+            const idx = parseInt(fila.dataset.index);
+            const gastoAEliminar = gastos[idx];
+
+            // Guardar estado para restaurar
+            guardarEstadoPrevio();
+
+            // Eliminar del Sheet (si tiene rowIndex)
+            if (gastoAEliminar.rowIndex) {
+              eliminarDelSheet(gastoAEliminar.rowIndex);
+            } else {
+              console.warn('Este gasto no tiene rowIndex, no se eliminará del Sheet');
+            }
+
+            // Eliminar localmente
+            fila.classList.add('eliminando');
+            setTimeout(() => {
+              gastos.splice(idx, 1);
+              guardarGastos();
+              actualizarTodo();
+            }, 250);
+          });
+          cellAccion.appendChild(btn);
+          row.appendChild(cellAccion);
+
+          // Ítem
+          const cellItem = document.createElement('div');
+          cellItem.className = 'cell item';
+          cellItem.textContent = g.item;
+          row.appendChild(cellItem);
+
+          // Cuota
+          const cellCuota = document.createElement('div');
+          cellCuota.className = 'cell cuota';
+          cellCuota.textContent = g.cuota || '-';
+          row.appendChild(cellCuota);
+
+          // Fecha
+          const cellFecha = document.createElement('div');
+          cellFecha.className = 'cell fecha';
+          if (g.fecha && g.fecha !== '') {
+            const inputFecha = document.createElement('input');
+            inputFecha.type = 'date';
+            inputFecha.value = g.fecha;
+            inputFecha.addEventListener('change', function(e) {
+              gastos[index].fecha = e.target.value;
+              guardarGastos();
+              actualizarTodo();
+            });
+            cellFecha.appendChild(inputFecha);
+          } else {
+            cellFecha.textContent = '-';
+          }
+          row.appendChild(cellFecha);
+
+          // Monto con badge
+          const cellMonto = document.createElement('div');
+          cellMonto.className = 'cell';
+          cellMonto.style.textAlign = 'right';
+          const montoNum = g.monto;
+          let badgeClass = 'bajo';
+          if (montoNum > 50000) badgeClass = 'alto';
+          else if (montoNum > 20000) badgeClass = 'medio';
+          const badge = document.createElement('span');
+          badge.className = 'badge ' + badgeClass + ' num';
+          badge.textContent = formatMoney(montoNum);
+          cellMonto.appendChild(badge);
+          row.appendChild(cellMonto);
+
+          container.appendChild(row);
+        });
+
+        // Actualizar contador y totales
+        document.getElementById('contador-gastos').textContent = gastos.length + ' movimientos';
+        const totalStr = formatMoney(totalTarjeta);
+        document.getElementById('total-tarjeta').textContent = totalStr;
+        document.getElementById('total-tarjeta-stats').textContent = totalStr;
+        document.getElementById('total-ingresos').textContent = formatMoney(totalIngresos);
+        document.getElementById('prestamo-fijo').textContent = formatMoney(prestamo);
+        document.getElementById('resto-stats').textContent = formatMoney(resto);
+
+        // Actualizar donut
+        const pResto = resto;
+        const pTarjeta = totalTarjeta;
+        const pPrestamo = prestamo;
+        const total = pResto + pTarjeta + pPrestamo;
+        if (total === 0) {
+          document.getElementById('donut').style.setProperty('--p1', '0deg');
+          document.getElementById('donut').style.setProperty('--p2', '0deg');
+          document.getElementById('resto-donut').textContent = '$0,00';
+          document.getElementById('resto-pct').textContent = '0% libre';
+          document.getElementById('leyenda-prestamo').textContent = '$0,00 · 0%';
+          document.getElementById('leyenda-tarjeta').textContent = '$0,00 · 0%';
+          document.getElementById('leyenda-resto').textContent = '$0,00 · 0%';
+          return;
+        }
+        const pctResto = (pResto / total) * 100;
+        const pctTarjeta = (pTarjeta / total) * 100;
+        const pctPrestamo = (pPrestamo / total) * 100;
+
+        const angPrestamo = pctPrestamo * 3.6;
+        const angTarjeta = (pctPrestamo + pctTarjeta) * 3.6;
+        document.getElementById('donut').style.setProperty('--p1', angPrestamo + 'deg');
+        document.getElementById('donut').style.setProperty('--p2', angTarjeta + 'deg');
+
+        document.getElementById('resto-donut').textContent = formatMoney(pResto);
+        document.getElementById('resto-pct').textContent = pctResto.toFixed(2) + '% libre';
+        document.getElementById('leyenda-prestamo').textContent = formatMoney(pPrestamo) + ' · ' + pctPrestamo.toFixed(2) + '%';
+        document.getElementById('leyenda-tarjeta').textContent = formatMoney(pTarjeta) + ' · ' + pctTarjeta.toFixed(2) + '%';
+        document.getElementById('leyenda-resto').textContent = formatMoney(pResto) + ' · ' + pctResto.toFixed(2) + '%';
+      }
+
+      // ===== COMUNICACIÓN CON SHEET =====
+
+      // 1. Sincronizar (GET)
+      async function sincronizarConSheet() {
+        try {
+          const respuesta = await fetch(SHEET_URL);
+          if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+          const datos = await respuesta.json();
+
+          if (!Array.isArray(datos) || datos.length === 0) {
+            console.warn('No se recibieron datos del sheet');
+            return;
+          }
+
+          // Mapear datos: cada objeto tiene item, cuota, fecha, monto, rowIndex
+          const nuevosGastos = datos.map(row => ({
+            item: row.item || row.Ítem || row[0] || 'Sin nombre',
+            cuota: row.cuota || row.Cuota || row[1] || '-',
+            fecha: row.fecha || row.Fecha || row[2] || '',
+            monto: parseFloat(row.monto || row.Monto || row[3] || 0),
+            rowIndex: row.rowIndex || null  // importante: viene del script
+          })).filter(g => g.monto > 0);
+
+          if (nuevosGastos.length === 0) {
+            console.warn('No hay gastos válidos en el sheet');
+            return;
+          }
+
+          // Reemplazar completamente los gastos locales con los del sheet
+          guardarEstadoPrevio();
+          gastos = nuevosGastos;
+          guardarGastos();
+          actualizarTodo();
+          console.log(`✅ Sincronizado: ${gastos.length} gastos desde el sheet`);
+        } catch (error) {
+          console.error('❌ Error al sincronizar:', error);
+        }
+      }
+
+      // 2. Agregar al Sheet (POST add)
+      async function agregarAlSheet(gasto) {
+        try {
+          const respuesta = await fetch(SHEET_URL, {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(gasto)
+          });
+
+          if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+          const resultado = await respuesta.json();
+
+          if (resultado.success && resultado.rowIndex) {
+            // Asignar el rowIndex al gasto local
+            const gastoLocal = gastos.find(g =>
+              g.item === gasto.item &&
+              g.monto === gasto.monto &&
+              g.cuota === gasto.cuota
+            );
+            if (gastoLocal) {
+              gastoLocal.rowIndex = resultado.rowIndex;
+              guardarGastos();
+            }
+            console.log(`✅ Gasto guardado en Sheet, fila ${resultado.rowIndex}`);
+          } else {
+            console.warn('⚠️ El Sheet respondió pero con error:', resultado.error);
+          }
+        } catch (error) {
+          console.error('❌ Error al guardar en Sheet:', error);
+        }
+      }
+
+      // 3. Eliminar del Sheet (POST delete)
+      async function eliminarDelSheet(rowIndex) {
+        try {
+          const respuesta = await fetch(SHEET_URL, {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete', rowIndex: rowIndex })
+          });
+
+          if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+          const resultado = await respuesta.json();
+
+          if (resultado.success) {
+            console.log(`✅ Fila ${rowIndex} eliminada del Sheet`);
+          } else {
+            console.warn('⚠️ Error al eliminar del Sheet:', resultado.error);
+          }
+        } catch (error) {
+          console.error('❌ Error al eliminar del Sheet:', error);
+        }
+      }
+
+      // ===== AGREGAR GASTO DESDE EL FORMULARIO =====
+      function agregarGasto() {
+        const itemInput = document.getElementById('item-input');
+        const cuotaInput = document.getElementById('cuota-input');
+        const fechaInput = document.getElementById('fecha-input');
+        const montoInput = document.getElementById('monto-input');
+
+        const item = itemInput.value.trim();
+        const cuotaVal = cuotaInput.value.trim();
+        const fecha = fechaInput.value;
+        const monto = parseFloat(montoInput.value);
+
+        if (!item) { alert('Ingresa un ítem'); return; }
+        if (isNaN(monto) || monto <= 0) { alert('Ingresa un monto válido'); return; }
+
+        const cuota = cuotaVal || '-';
+
+        const nuevoGasto = { item, cuota, fecha, monto };
+
+        // 1. Guardar localmente
+        guardarEstadoPrevio();
+        gastos.push(nuevoGasto);
+        guardarGastos();
+
+        // 2. Limpiar formulario
+        itemInput.value = '';
+        cuotaInput.value = '';
+        fechaInput.value = '';
+        montoInput.value = '';
+
+        // 3. Actualizar UI
+        actualizarTodo(true);
+
+        // 4. Enviar al Sheet (asíncrono)
+        agregarAlSheet(nuevoGasto);
+      }
+
+      // ===== INICIALIZACIÓN =====
+      // Cargar datos locales primero
+      const datosGuardados = cargarGastos();
+      if (datosGuardados && datosGuardados.length > 0) {
+        gastos = datosGuardados;
+      } else {
+        // Datos iniciales de ejemplo (sin rowIndex)
+        gastos = [
+          { item: 'Seguro', cuota: '-', fecha: '', monto: 72795 },
+          { item: 'Monitor', cuota: '05/06', fecha: '', monto: 62755 },
+          { item: 'Silla', cuota: '02/06', fecha: '', monto: 31221 },
+          { item: 'Planchita', cuota: '02/03', fecha: '', monto: 16754 },
+          { item: 'Netflix', cuota: 'mitad', fecha: '', monto: 12000 },
+          { item: 'Pantalon', cuota: '02/03', fecha: '', monto: 6800 }
+        ];
+        guardarGastos();
+      }
+      ordenarGastos();
+
+      // Sincronizar con el Sheet al cargar y cada 60 segundos
+      window.addEventListener('load', function() {
+        sincronizarConSheet();
+        setInterval(sincronizarConSheet, 60000);
+      });
+
+      // ===== EVENTOS UI =====
+      document.getElementById('add-btn').addEventListener('click', agregarGasto);
+
+      ['item-input', 'cuota-input', 'fecha-input', 'monto-input'].forEach(id => {
+        document.getElementById(id).addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            agregarGasto();
+          }
+        });
+      });
+
+      document.getElementById('hoy-btn').addEventListener('click', function() {
+        const hoy = new Date();
+        const yyyy = hoy.getFullYear();
+        const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+        const dd = String(hoy.getDate()).padStart(2, '0');
+        document.getElementById('fecha-input').value = yyyy + '-' + mm + '-' + dd;
+        document.getElementById('fecha-input').dispatchEvent(new Event('focus'));
+      });
+
+      document.getElementById('restaurar-btn').addEventListener('click', restaurarUltimo);
+
+      // Tema oscuro/claro
+      const toggle = document.getElementById('tema-toggle');
+      toggle.addEventListener('change', function() {
+        document.body.classList.toggle('light', this.checked);
+        localStorage.setItem('tema', this.checked ? 'light' : 'dark');
+      });
+      const temaGuardado = localStorage.getItem('tema');
+      if (temaGuardado === 'light') {
+        toggle.checked = true;
+        document.body.classList.add('light');
+      }
+
+      // Vista resumida/desplegada
+      const vistaGuardada = localStorage.getItem('vista');
+      if (vistaGuardada === 'resumida') {
+        document.querySelector('.panel-tabla').classList.add('vista-resumida');
+        document.getElementById('vista-icono').textContent = '📄';
+        document.getElementById('vista-etiqueta').textContent = 'Resumido';
+      }
+
+      document.getElementById('vista-switch').addEventListener('click', function() {
+        const container = document.querySelector('.panel-tabla');
+        container.classList.toggle('vista-resumida');
+        const icono = document.getElementById('vista-icono');
+        const etiqueta = document.getElementById('vista-etiqueta');
+        const resumida = container.classList.contains('vista-resumida');
+        if (resumida) {
+          icono.textContent = '📄';
+          etiqueta.textContent = 'Resumido';
+        } else {
+          icono.textContent = '📋';
+          etiqueta.textContent = 'Desplegado';
+        }
+        localStorage.setItem('vista', resumida ? 'resumida' : 'desplegada');
+      });
+
+      // Render inicial
+      actualizarTodo();
+    })();
+  </script>
+
+</body>
+</html>
