@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel Financiero · VISA Julio</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
     /* ============================================================
-       VARIABLES Y RESET (sin cambios)
-       ============================================================ */
+       VARIABLES Y RESET
+    ============================================================ */
     :root {
       --bg: #F5F4FB;
       --surface: rgba(18, 18, 22, 0.78);
@@ -226,7 +226,6 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      flex-wrap: wrap;
     }
 
     .vista-switch {
@@ -237,14 +236,14 @@
       color: var(--ink-soft);
       cursor: pointer;
       user-select: none;
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255,255,255,0.05);
       padding: 4px 10px;
       border-radius: 999px;
       border: 1px solid var(--border);
       transition: background 0.2s;
     }
     .vista-switch:hover {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255,255,255,0.1);
     }
     .vista-switch .icono {
       font-size: 16px;
@@ -587,27 +586,6 @@
     .acciones-botonera .info {
       color: var(--ink-faint);
       font-size: 12px;
-    }
-
-    /* NUEVO: botón de sincronización manual */
-    #sync-btn {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 6px 14px;
-      color: var(--ink-soft);
-      font-weight: 500;
-      cursor: pointer;
-      font-size: 12px;
-      transition: 0.2s;
-      font-family: var(--font-sans);
-    }
-    #sync-btn:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-    #sync-btn.sincronizando {
-      opacity: 0.5;
-      pointer-events: none;
     }
 
     /* ============================================================
@@ -1055,6 +1033,39 @@
         transition-duration: 0.01ms !important;
       }
     }
+
+    /* ============================================================
+       BOTÓN SINCRONIZAR (adicional)
+    ============================================================ */
+    #sync-btn {
+      background: var(--violet-700);
+      border: none;
+      border-radius: 6px;
+      padding: 6px 16px;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      margin-left: 10px;
+    }
+    #sync-btn:hover:not(:disabled) {
+      opacity: 0.85;
+      transform: scale(1.02);
+    }
+    #sync-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    #sync-btn.sincronizando {
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -1063,7 +1074,7 @@
   <div class="tema-toggle-container">
     <span>🌙</span>
     <label>
-      <input type="checkbox" id="tema-toggle" />
+      <input type="checkbox" id="tema-toggle">
       <span class="slider"></span>
     </label>
     <span>☀️</span>
@@ -1075,13 +1086,12 @@
       <div class="section-head">
         <h2>Gastos Tarjeta VISA</h2>
         <div class="derecha">
-          <!-- NUEVO: botón de sincronización manual -->
-          <button id="sync-btn" title="Sincronizar con Google Sheets">🔄 Sincronizar</button>
           <span class="vista-switch" id="vista-switch" role="button" tabindex="0" aria-label="Alternar vista resumida/desplegada">
             <span class="icono" id="vista-icono">📋</span>
             <span class="etiqueta" id="vista-etiqueta">Desplegado</span>
           </span>
           <span class="hint" id="contador-gastos">6 movimientos</span>
+          <button id="sync-btn">🔄 Sincronizar</button>
         </div>
       </div>
       <div class="panel-tabla">
@@ -1102,20 +1112,20 @@
 
         <div class="add-row-form" id="add-form">
           <div class="grupo">
-            <input type="text" id="item-input" placeholder=" " required />
+            <input type="text" id="item-input" placeholder=" " required>
             <label for="item-input">Ítem</label>
           </div>
           <div class="grupo">
-            <input type="number" id="cuota-input" placeholder=" " min="0" step="1" />
+            <input type="number" id="cuota-input" placeholder=" " min="0" step="1">
             <label for="cuota-input">Cuota</label>
           </div>
           <div class="grupo grupo-fecha">
-            <input type="date" id="fecha-input" placeholder=" " />
+            <input type="date" id="fecha-input" placeholder=" ">
             <label for="fecha-input">Fecha</label>
             <button type="button" class="btn-hoy" id="hoy-btn">Hoy</button>
           </div>
           <div class="grupo">
-            <input type="number" id="monto-input" placeholder=" " min="0" step="0.01" required />
+            <input type="number" id="monto-input" placeholder=" " min="0" step="0.01" required>
             <label for="monto-input">Monto</label>
           </div>
           <button id="add-btn">Agregar gasto</button>
@@ -1195,8 +1205,7 @@
   <script>
     (function() {
       // ===== CONFIGURACIÓN =====
-      // ⚠️ REEMPLAZA ESTA URL CON LA TUYA (la que obtuviste de Google Apps Script)
-      const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyyvULEwZzYg8jQ01a0rjhPYg20R4jatPzpXrj8teeYuvuymuSRdEZ6RjD8GxxqncICOA/exec';
+      const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzOjMKN6yUX-XNnerJ_G7ezFWHvhQZSotL1YZFTs2ZUyJKOkYky4YttWDrjK9JreHMH4g/exec'; // <--- REEMPLAZA CON TU URL
 
       // ===== DATOS FIJOS =====
       const sueldo = 1145387.89;
@@ -1402,88 +1411,88 @@
 
       // ===== COMUNICACIÓN CON SHEET =====
 
-      // ===== SINCRONIZAR CON SHEET (GET) - CON DETECCIÓN AUTOMÁTICA DE COLUMNAS =====
-async function sincronizarConSheet() {
-  if (sincronizando) return;
-  sincronizando = true;
-  const syncBtn = document.getElementById('sync-btn');
-  if (syncBtn) {
-    syncBtn.classList.add('sincronizando');
-    syncBtn.textContent = '⏳ Sincronizando...';
-  }
+      // 1. Sincronizar (GET) con detección automática de columnas
+      async function sincronizarConSheet() {
+        if (sincronizando) return;
+        sincronizando = true;
+        const syncBtn = document.getElementById('sync-btn');
+        if (syncBtn) {
+          syncBtn.classList.add('sincronizando');
+          syncBtn.textContent = '⏳ Sincronizando...';
+        }
 
-  try {
-    const respuesta = await fetch(SHEET_URL);
-    if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
-    const datos = await respuesta.json();
+        try {
+          const respuesta = await fetch(SHEET_URL);
+          if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+          const datos = await respuesta.json();
 
-    if (!Array.isArray(datos) || datos.length === 0) {
-      console.warn('No se recibieron datos del sheet');
-      return;
-    }
+          if (!Array.isArray(datos) || datos.length === 0) {
+            console.warn('No se recibieron datos del sheet');
+            return;
+          }
 
-    // --- DETECCIÓN AUTOMÁTICA DE COLUMNAS ---
-    const muestra = datos[0];
-    const claves = Object.keys(muestra);
+          // --- DETECCIÓN AUTOMÁTICA DE COLUMNAS ---
+          const muestra = datos[0];
+          const claves = Object.keys(muestra);
 
-    // Normalizar: quitar tildes y convertir a minúsculas
-    const normalizar = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+          // Normalizar: quitar tildes y convertir a minúsculas
+          const normalizar = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-    function findKey(patrones) {
-      for (let clave of claves) {
-        const claveNorm = normalizar(clave);
-        for (let patron of patrones) {
-          if (claveNorm === normalizar(patron)) return clave;
-          if (claveNorm.includes(normalizar(patron))) return clave;
+          function findKey(patrones) {
+            for (let clave of claves) {
+              const claveNorm = normalizar(clave);
+              for (let patron of patrones) {
+                if (claveNorm === normalizar(patron)) return clave;
+                if (claveNorm.includes(normalizar(patron))) return clave;
+              }
+            }
+            return null;
+          }
+
+          const keyItem = findKey(['item', 'ítem', 'nombre', 'descripcion', 'producto']);
+          const keyCuota = findKey(['cuota', 'cuotas', 'plazo', 'pago']);
+          const keyFecha = findKey(['fecha', 'fechas', 'dia', 'date']);
+          const keyMonto = findKey(['monto', 'importe', 'precio', 'valor', 'amount', 'total']);
+
+          console.log('📊 Columnas detectadas:', { keyItem, keyCuota, keyFecha, keyMonto });
+
+          // Mapear datos con las claves detectadas
+          const nuevosGastos = datos.map(row => {
+            const item = keyItem ? row[keyItem] : (row[0] || 'Sin nombre');
+            const cuota = keyCuota ? row[keyCuota] : (row[1] || '-');
+            const fecha = keyFecha ? row[keyFecha] : (row[2] || '');
+            const monto = keyMonto ? parseFloat(row[keyMonto]) : (parseFloat(row[3]) || 0);
+            const rowIndex = row.rowIndex || null;
+
+            return {
+              item: String(item).trim(),
+              cuota: String(cuota).trim(),
+              fecha: String(fecha).trim(),
+              monto: isNaN(monto) ? 0 : monto,
+              rowIndex: rowIndex
+            };
+          }).filter(g => g.monto > 0 && g.item !== '');
+
+          if (nuevosGastos.length === 0) {
+            console.warn('No hay gastos válidos en el sheet');
+            return;
+          }
+
+          guardarEstadoPrevio();
+          gastos = nuevosGastos;
+          guardarGastos();
+          actualizarTodo();
+          console.log(`✅ Sincronizado: ${gastos.length} gastos desde el sheet`);
+        } catch (error) {
+          console.error('❌ Error al sincronizar:', error);
+        } finally {
+          sincronizando = false;
+          if (syncBtn) {
+            syncBtn.classList.remove('sincronizando');
+            syncBtn.textContent = '🔄 Sincronizar';
+          }
         }
       }
-      return null;
-    }
-
-    const keyItem = findKey(['item', 'ítem', 'nombre', 'descripcion', 'producto']);
-    const keyCuota = findKey(['cuota', 'cuotas', 'plazo', 'pago']);
-    const keyFecha = findKey(['fecha', 'fechas', 'dia', 'date']);
-    const keyMonto = findKey(['monto', 'importe', 'precio', 'valor', 'amount', 'total']);
-
-    console.log('📊 Columnas detectadas:', { keyItem, keyCuota, keyFecha, keyMonto });
-
-    // Mapear datos con las claves detectadas
-    const nuevosGastos = datos.map(row => {
-      const item = keyItem ? row[keyItem] : (row[0] || 'Sin nombre');
-      const cuota = keyCuota ? row[keyCuota] : (row[1] || '-');
-      const fecha = keyFecha ? row[keyFecha] : (row[2] || '');
-      const monto = keyMonto ? parseFloat(row[keyMonto]) : (parseFloat(row[3]) || 0);
-      const rowIndex = row.rowIndex || null;
-
-      return {
-        item: String(item).trim(),
-        cuota: String(cuota).trim(),
-        fecha: String(fecha).trim(),
-        monto: isNaN(monto) ? 0 : monto,
-        rowIndex: rowIndex
-      };
-    }).filter(g => g.monto > 0 && g.item !== '');
-
-    if (nuevosGastos.length === 0) {
-      console.warn('No hay gastos válidos en el sheet');
-      return;
-    }
-
-    guardarEstadoPrevio();
-    gastos = nuevosGastos;
-    guardarGastos();
-    actualizarTodo();
-    console.log(`✅ Sincronizado: ${gastos.length} gastos desde el sheet`);
-  } catch (error) {
-    console.error('❌ Error al sincronizar:', error);
-  } finally {
-    sincronizando = false;
-    if (syncBtn) {
-      syncBtn.classList.remove('sincronizando');
-      syncBtn.textContent = '🔄 Sincronizar';
-    }
-  }
-}
 
       // 2. Agregar al Sheet (POST add)
       async function agregarAlSheet(gasto) {
@@ -1499,7 +1508,6 @@ async function sincronizarConSheet() {
           const resultado = await respuesta.json();
 
           if (resultado.success && resultado.rowIndex) {
-            // Asignar el rowIndex al gasto local
             const gastoLocal = gastos.find(g =>
               g.item === gasto.item &&
               g.monto === gasto.monto &&
@@ -1560,31 +1568,25 @@ async function sincronizarConSheet() {
 
         const nuevoGasto = { item, cuota, fecha, monto };
 
-        // 1. Guardar localmente
         guardarEstadoPrevio();
         gastos.push(nuevoGasto);
         guardarGastos();
 
-        // 2. Limpiar formulario
         itemInput.value = '';
         cuotaInput.value = '';
         fechaInput.value = '';
         montoInput.value = '';
 
-        // 3. Actualizar UI
         actualizarTodo(true);
 
-        // 4. Enviar al Sheet (asíncrono)
         agregarAlSheet(nuevoGasto);
       }
 
       // ===== INICIALIZACIÓN =====
-      // Cargar datos locales primero
       const datosGuardados = cargarGastos();
       if (datosGuardados && datosGuardados.length > 0) {
         gastos = datosGuardados;
       } else {
-        // Datos iniciales de ejemplo (sin rowIndex)
         gastos = [
           { item: 'Seguro', cuota: '-', fecha: '', monto: 72795 },
           { item: 'Monitor', cuota: '05/06', fecha: '', monto: 62755 },
@@ -1597,9 +1599,8 @@ async function sincronizarConSheet() {
       }
       ordenarGastos();
 
-      // Sincronizar con el Sheet al cargar y cada 60 segundos
       window.addEventListener('load', function() {
-        setTimeout(sincronizarConSheet, 500); // pequeño delay para asegurar carga
+        sincronizarConSheet();
         setInterval(sincronizarConSheet, 60000);
       });
 
@@ -1625,11 +1626,8 @@ async function sincronizarConSheet() {
       });
 
       document.getElementById('restaurar-btn').addEventListener('click', restaurarUltimo);
-
-      // Botón de sincronización manual
       document.getElementById('sync-btn').addEventListener('click', sincronizarConSheet);
 
-      // Tema oscuro/claro
       const toggle = document.getElementById('tema-toggle');
       toggle.addEventListener('change', function() {
         document.body.classList.toggle('light', this.checked);
@@ -1641,7 +1639,6 @@ async function sincronizarConSheet() {
         document.body.classList.add('light');
       }
 
-      // Vista resumida/desplegada
       const vistaGuardada = localStorage.getItem('vista');
       if (vistaGuardada === 'resumida') {
         document.querySelector('.panel-tabla').classList.add('vista-resumida');
@@ -1665,7 +1662,6 @@ async function sincronizarConSheet() {
         localStorage.setItem('vista', resumida ? 'resumida' : 'desplegada');
       });
 
-      // Render inicial
       actualizarTodo();
     })();
   </script>
